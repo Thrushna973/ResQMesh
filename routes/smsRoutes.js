@@ -6,7 +6,7 @@ const {
 
 testSMS
 
-} = require("../controllers/testSMSController");
+} = require("../Controllers/testSMSController");
 
 router.get("/test-sms",testSMS);
 

@@ -6,7 +6,7 @@ const {
     uploadEmergency,
     getPendingEmergencies,
     processEmergency
-} = require("../controllers/emergencyController");
+} = require("../Controllers/emergencyController");
 
 router.post("/upload", uploadEmergency);
 router.get("/pending", getPendingEmergencies);
