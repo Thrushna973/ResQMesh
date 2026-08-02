@@ -30,7 +30,31 @@ app.use(helmet());
 
 app.use(compression());
 
-app.use(cors());
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5173"
+];
+
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, curl, or postman)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json({
     limit: "1mb"
@@ -84,6 +108,13 @@ app.get("/", (req, res) => {
 
 });
 
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "ResQMesh Backend Running"
+    });
+});
+
 /*
 |--------------------------------------------------------------------------
 | Routes
@@ -118,9 +149,16 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
 
-    console.error(err);
+    console.error("Global Error Handler:", err);
 
-    res.status(500).json({
+    if (err.message === "Not allowed by CORS") {
+        return res.status(403).json({
+            success: false,
+            message: "CORS Error: Origin not allowed."
+        });
+    }
+
+    res.status(err.status || 500).json({
 
         success: false,
 
